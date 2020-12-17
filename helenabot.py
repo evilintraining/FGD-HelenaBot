@@ -42,9 +42,10 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
         # Display Creation Embed
         embed = discord.Embed(title="{0} has started!".format(event_name), 
             description = "Use '{0} join {1}' to join the event and \n'{0} update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format(client.command_prefix, event_tag, goal),
-            color = botcolor,
-            thumbnail= ctx.guild.icon_url
+            color = botcolor
             )
+        embed.set_thumbnail(url = ctx.guild.icon_url)
+
         await ctx.send(embed=embed)
 
         if (conn):
@@ -55,10 +56,9 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
 @client.command()
 async def join(ctx, event_tag, new_val=0):
     
-    # Insert into DB
     try:
 
-        # Insert Event into DB
+        # Insert User into DB
         conn = psycopg2.connect(database, sslmode='require')
         cursor = conn.cursor()
         cursor.execute(join_sql.format(ctx.message.guild.id, ctx.message.author.id, new_val, event_tag))
@@ -71,9 +71,9 @@ async def join(ctx, event_tag, new_val=0):
 
         # Display Creation Embed
         embed = discord.Embed(title="{0} has joined the race! Good Luck!".format(ctx.message.author.name), 
-            color = botcolor,
-            thumbnail= ctx.message.author.avatar_url
+            color = botcolor
             )
+        embed.set_thumbnail(url = ctx.message.author.avatar_url)
         await ctx.send(embed=embed)
 
         if (conn):
@@ -92,6 +92,22 @@ async def update(ctx, new_val):
 @client.command()
 async def leaderboard(ctx, event_tag):
     await ctx.send("Showing leaderboard for {0}".format(event_tag))
+
+
+@client.command()
+async def testembed(ctx):
+    embed = discord.Embed(title="{0} has started!".format("Xmas Lotto 2020"), 
+            description = "Use '{0} join {1}' to join the event and \n'{0} update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format("!h", "Xmas2020", 100),
+            color = botcolor
+            )
+    embed.set_thumbnail(url = ctx.guild.icon_url)
+    await ctx.send(embed=embed)
+
+    embed = discord.Embed(title="{0} has joined the race! Good Luck!".format(ctx.message.author.name), 
+        color = botcolor
+        )
+    embed.set_thumbnail(url = ctx.message.author.avatar_url)
+    await ctx.send(embed=embed)
 
 @client.command()
 async def ping(ctx):
