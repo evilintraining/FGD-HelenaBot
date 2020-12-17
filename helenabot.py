@@ -10,7 +10,6 @@ botcolor = 0xC793C3
 
 # DB init
 database = os.getenv("DATABASE_URL")
-conn = psycopg2.connect(database, sslmode='require')
 
 # SQL commands
 start_sql = os.getenv("START_SQL")
@@ -29,12 +28,17 @@ async def on_ready():
 async def start_event(ctx, event_name, event_tag, event_type, goal):
     try:
         # Insert Event into DB
+
+        await ctx.send(start_sql.format(ctx.message.guild.id, event_type, event_name, event_tag, goal))
+
+        conn = psycopg2.connect(database, sslmode='require')
         cursor = conn.cursor()
         cursor.execute(start_sql.format(ctx.message.guild.id, event_type, event_name, event_tag, goal))
-        await ctx.send(start_sql.format(ctx.message.guild.id, event_type, event_name, event_tag, goal))
         conn.commit()
+
     except (Exception, psycopg2.Error) as error:
-        print("Start event error: {0}".format(error))
+        await ctx.send("Start event error: {0}".format(error))
+    
     finally:
 
         # Display Creation Embed
@@ -47,6 +51,7 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
 
         if (conn):
             cursor.close()
+            conn.close()
 
 # h! join xmas20 20  
 @client.command()
