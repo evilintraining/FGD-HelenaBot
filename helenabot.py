@@ -98,7 +98,7 @@ async def leaderboard(ctx, event_tag):
 @client.command()
 async def testembed(ctx):
     embed = discord.Embed(title="{0} has started!".format("Xmas Lotto 2020"), 
-            description = "Use '{0} join {1}' to join the event and \n'{0} update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format("!h", "Xmas2020", 100),
+            description = "Use '{0} join {1}' to join the event and \n'{0} update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format("!h", "xmas20", 100),
             color = botcolor
             )
     embed.set_thumbnail(url = ctx.guild.icon_url)
@@ -120,14 +120,13 @@ async def whoami(ctx):
 
 @client.command()
 async def himaster(ctx):
-    master = client.get_user(int(master_id)) # get member to display nickname?
+    master = client.get_user(int(master_id)) # get_member to display nickname?
     await ctx.send("My Master is {0}. {1}".format(master.name, "Hello Master!"))
-    #call_master(ctx, "Hello Master!")
+    call_master("Hello Master!")
 
 # Call Evil for help if something is wrong
-async def call_master(ctx, bug_message):
-    master = client.get_user(int(master_id)) # get member to display nickname?
-    await ctx.send("My Master is {0}. {1}".format(master.name, bug_message))
-    #await master.send(bug_message)  
+async def call_master(bug_message):
+    master = client.get_user(int(master_id))
+    await master.send(bug_message)  
 
 client.run(token)
