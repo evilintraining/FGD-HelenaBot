@@ -120,7 +120,9 @@ async def whoami(ctx):
 
 @client.command()
 async def himaster(ctx):
-    call_master(ctx, "Hello Master!")
+    master = client.get_user(int(master_id)) # get member to display nickname?
+    await ctx.send("My Master is {0}. {1}".format(master.name, "Hello Master!"))
+    #call_master(ctx, "Hello Master!")
 
 # Call Evil for help if something is wrong
 async def call_master(ctx, bug_message):
