@@ -13,7 +13,7 @@ database = os.getenv("DATABASE_URL")
 
 # SQL commands
 start_sql = os.getenv("START_SQL")
-#join_sql = os.getenv("JOIN_SQL")
+join_sql = os.getenv("JOIN_SQL")
 #update_sql = os.getenv("UPDATE_SQL")
 #leaderboard_sql = os.getenv("LEADER_SQL")
 
@@ -29,15 +29,13 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
     try:
         # Insert Event into DB
 
-        await ctx.send(start_sql.format(ctx.message.guild.id, event_type, event_name, event_tag, goal))
-
         conn = psycopg2.connect(database, sslmode='require')
         cursor = conn.cursor()
         cursor.execute(start_sql.format(ctx.message.guild.id, event_type, event_name, event_tag, goal))
         conn.commit()
 
     except (Exception, psycopg2.Error) as error:
-        await ctx.send("Start event error: {0}".format(error))
+        print("Start event error: {0}".format(error))
     
     finally:
 
@@ -56,15 +54,39 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
 # h! join xmas20 20  
 @client.command()
 async def join(ctx, event_tag, new_val=0):
-    await ctx.send("Master {0} is joining {1} with {2}".format(ctx.message.author.name, event_tag, new_val))
+    
     # Insert into DB
-    # Check for victory conditions
+    try:
+
+        # Insert Event into DB
+        conn = psycopg2.connect(database, sslmode='require')
+        cursor = conn.cursor()
+        cursor.execute(join_sql.format(ctx.message.guild.id, ctx.message.author.id, new_val, event_tag))
+        conn.commit()
+
+    except (Exception, psycopg2.Error) as error:
+        await ctx.send("Join event error: {0}".format(error))
+    
+    finally:
+
+        # Display Creation Embed
+        embed = discord.Embed(title="{0} has joined the race! Good Luck!".format(ctx.message.author.name), 
+            color = botcolor,
+            thumbnail= ctx.message.author.avatar_url
+            )
+        await ctx.send(embed=embed)
+
+        if (conn):
+            cursor.close()
+            conn.close()
+    
 
 # h! update xmas20 20
 @client.command()
 async def update(ctx, new_val):
     await ctx.send("Updating Master {0}'s count to {1}.".format(ctx.message.author.name, new_val))
     # update 
+    # Check for victory conditions
 
 # h! leaderboard
 @client.command()
