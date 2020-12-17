@@ -27,11 +27,11 @@ async def on_ready():
 
 @client.command(name="start")
 async def start_event(ctx, event_name, event_tag, event_type, goal):
-    await ctx.send("Starting {0} Event ({1}), {2} with goal of {3}".format(event_name, event_tag, event_type, goal))
     try:
         # Insert Event into DB
         cursor = conn.cursor()
         cursor.execute(start_sql.format(ctx.message.guild.id, event_type, event_name, event_tag, goal))
+        await ctx.send(start_sql.format(ctx.message.guild.id, event_type, event_name, event_tag, goal))
         conn.commit()
     except (Exception, psycopg2.Error) as error:
         print("Start event error: {0}".format(error))
@@ -39,7 +39,7 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
 
         # Display Creation Embed
         embed = discord.Embed(title="{0} has started!".format(event_name), 
-            description = "Use '{0} join {1}' to join the event and '{0} update {1} [amount]' to update your score!".format(client.command_prefix, event_tag),
+            description = "Use '{0} join {1}' to join the event and \n'{0} update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format(client.command_prefix, event_tag, goal),
             color = botcolor,
             thumbnail= ctx.guild.icon_url
             )
