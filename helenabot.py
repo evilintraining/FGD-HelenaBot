@@ -36,7 +36,7 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
         conn.commit()
 
     except (Exception, psycopg2.Error) as error:
-        call_master("Start event error: {0}".format(error))
+        call_master(ctx, "Start event error: {0}".format(error))
     
     finally:
 
@@ -66,7 +66,7 @@ async def join(ctx, event_tag, new_val=0):
         conn.commit()
 
     except (Exception, psycopg2.Error) as error:
-        call_master("Join event error: {0}".format(error))
+        call_master(ctx, "Join event error: {0}".format(error))
     
     finally:
 
@@ -120,10 +120,10 @@ async def whoami(ctx):
 
 @client.command()
 async def himaster(ctx):
-    call_master("Hello Master!")
+    call_master(ctx, "Hello Master!")
 
 # Call Evil for help if something is wrong
-async def call_master(bug_message):
+async def call_master(ctx, bug_message):
     master = client.get_user(int(master_id)) # get member to display nickname?
     await ctx.send("My Master is {0}. {1}".format(master.name, bug_message))
     #await master.send(bug_message)  
