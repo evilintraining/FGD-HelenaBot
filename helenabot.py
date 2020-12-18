@@ -277,7 +277,9 @@ async def whoami(ctx):
 @client.command()
 async def himaster(ctx):
     master = client.get_user(int(master_id)) # get_member to display nickname?
-    await ctx.send("My Master is {0}. {1}".format(master.name, "Hello Master!"))
+    await ctx.send("My Master is {0}.".format(master.name))
+    await ctx.send("The current server is {0}.".format(ctx.guild))
+    await ctx.send("Master's Server Nickname is {0}.".format(ctx.guild.get_member(int(master_id))))
     await call_master("Hello Master!")
 
 # Call Evil for help if something is wrong 
