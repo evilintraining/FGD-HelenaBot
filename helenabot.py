@@ -136,18 +136,18 @@ async def update(ctx, event_tag, new_val):
             cursor.close()
             conn.close()
 
-# h! leaderboard xmas2020
+# h! leaderboard xmas20
 @client.command()
 async def leaderboard(ctx, event_tag):
     try:
 
-        # Input parsing - not triggering
+        # Input parsing 
         if event_tag == '':
             embed = discord.Embed(title="Incomplete command!",
                 description = "Please enter an event tag.",
                 color = botcolor
             )
-            ctx.send(embed)
+            await ctx.send(embed)
             return
 
         # Connect to database
@@ -163,20 +163,19 @@ async def leaderboard(ctx, event_tag):
         event_status = ''
         event_goal = ''
         for row in rows:
-            #await ctx.send("id: {0}, name: {1} alias: {2} status: {3}".format(row[0], row[1], row[2], row[3]))
             if (row[2] == event_tag):
                 event_id = row[0]
                 event_name = row[1]
                 event_status = row[3]
                 event_goal = row[4]
 
-        # Missing Event - incorrect tag - also not working
+        # Missing Event - incorrect tag - TODO: fix
         if event_status is '': 
             embed = discord.Embed(title="404 - Event Tag not Found!",
                 description = "Please check the event tag.",
                 color = botcolor
             )
-            ctx.send(embed)
+            await ctx.send(embed)
             if (conn):
                 cursor.close()
                 conn.close()
@@ -207,9 +206,6 @@ async def leaderboard(ctx, event_tag):
             member_complete = row[3]
             member_ranking = 0
 
-            # print statement
-            # await ctx.send("member: {0}, amount: {1} member_update: {2} member_complete: {3}".format(member_name, member_amount, member_update, member_complete))
-
             # Calculate Rank
             if prev_amount != member_amount:
                 member_ranking = ranking + increment
@@ -229,8 +225,9 @@ async def leaderboard(ctx, event_tag):
             # Handle Name
             namestring = member_name
             if member_nickname is not None:
-                namestring += "(" + member_nickname + ")"
+                namestring += " (" + member_nickname + ")"
 
+            # Build Individual Ranking Row
             embed.add_field(name="#{0} - {1}".format(member_ranking, namestring), 
                 value="{0}/{1}\n{2}".format(member_amount, event_goal, datestring))
         
@@ -248,18 +245,6 @@ async def leaderboard(ctx, event_tag):
 
 @client.command()
 async def testembed(ctx):
-    embed = discord.Embed(title="{0} has started!".format("Xmas Lotto 2020"), 
-            description = "Use '{0} join {1}' to join the event and \n'{0} update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format("!h", "xmas20", 100),
-            color = botcolor
-            )
-    embed.set_thumbnail(url = ctx.guild.icon_url)
-    await ctx.send(embed=embed)
-
-    embed = discord.Embed(title="{0} has joined the race! Good Luck!".format(ctx.message.author.name), 
-        color = botcolor
-        )
-    embed.set_thumbnail(url = ctx.message.author.avatar_url)
-    await ctx.send(embed=embed)
 
     # Leaderboard Embed
     embed = discord.Embed(title="{0}".format("Xmas Lotto 2020 - Event Leaderboard"),
@@ -268,17 +253,8 @@ async def testembed(ctx):
             )
     embed.set_thumbnail(url= ctx.guild.icon_url)
     embed.add_field(name="#{0} - {1}".format(1, 'Evil'), value="{0}/{1}\n{2}".format(0, 100, "formatted date")) # just loop this
+    
     await ctx.send(embed=embed)
-
-'''
-@client.command()
-async def ping(ctx):
-    await ctx.send("Pong with {0}".format(round(client.latency,2)))
-
-@client.command(name="whoami")
-async def whoami(ctx):
-    await ctx.send("You are Master {0}".format(ctx.message.author.name))
-'''
 
 @client.command()
 async def himaster(ctx):
