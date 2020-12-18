@@ -200,7 +200,7 @@ async def leaderboard(ctx, event_tag):
         # Loop through results and build the embed
         for row in rows:
 
-            member_name = ctx.guild.get_member(int(row[0]))
+            member_name = str(ctx.guild.get_member(int(row[0])))
             member_nickname = ctx.guild.get_member(int(row[0])).nick
             member_amount = row[1]
             member_update = row[2]
