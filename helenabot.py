@@ -141,8 +141,8 @@ async def update(ctx, event_tag, new_val):
 async def leaderboard(ctx, event_tag):
     try:
 
-        # Input parsing - not triggering
-        if event_tag is '':
+        # Input parsing 
+        if event_tag is None:
             embed = discord.Embed(title="Incomplete command!",
                 description = "Please enter an event tag.",
                 color = botcolor
@@ -219,7 +219,7 @@ async def leaderboard(ctx, event_tag):
             
             # Handle Date
             datestring = "Date updated: " + member_update.strftime("%m/%d/%Y, %H:%M:%S")
-            if member_complete != '':
+            if member_complete is not None:
                 datestring += "\nDate completed: " + member_complete.strftime("%m/%d/%Y, %H:%M:%S")
 
             embed.add_field(name="#{0} - {1}".format(member_ranking, member_name), 
