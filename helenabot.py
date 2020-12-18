@@ -4,7 +4,7 @@ import os
 import psycopg2
 
 # Bot init
-client = commands.Bot(command_prefix="!h ")
+client = commands.Bot(command_prefix="*h ")
 token = os.getenv("HELENABOT_TOKEN")
 master_id = os.getenv("MASTER_ID")
 botcolor = 0xC793C3
@@ -16,12 +16,12 @@ database = os.getenv("DATABASE_URL")
 start_sql = os.getenv("START_SQL")
 join_sql = os.getenv("JOIN_SQL")
 update_sql = os.getenv("UPDATE_SQL")
+event_sql = os.getenv("EVENT_SQL")
 #leaderboard_sql = os.getenv("LEADER_SQL")
 
 @client.event
 async def on_ready():
     await client.change_presence(status = discord.Status.online, activity=discord.Activity(type=discord.ActivityType.watching, name= "over events"))
-    await call_master("Master, I'm ready!")
 
 # h! start "Xmas Lotto 2020" xmas20 solo 100
 @client.command(name="start")
@@ -59,16 +59,21 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
 # h! join xmas20 20  
 @client.command()
 async def join(ctx, event_tag, new_val=0):
+
+    success = False
     
     try:
 
-        # Pull event details
+        # Connect to database
+        conn = psycopg2.connect(database, sslmode='require')
+        cursor = conn.cursor()
+
+        # pull all event details form the surver
 
         # Check if event tag exists, event is active
 
         # Insert User into DB
-        conn = psycopg2.connect(database, sslmode='require')
-        cursor = conn.cursor()
+        
         cursor.execute(join_sql.format(ctx.message.guild.id, ctx.message.author.id, new_val, event_tag))
         conn.commit()
 
@@ -134,6 +139,21 @@ async def update(ctx, event_tag, new_val):
 async def leaderboard(ctx, event_tag):
     try:
 
+        # Input parsing
+
+        # Connect to database
+        conn = psycopg2.connect(database, sslmode='require')
+        cursor = conn.cursor()
+
+
+        # Pull event details belonging to server
+        cursor.execute(event_sql.format(ctx.message.guild.id))
+        rows = cursor.fetchall()
+
+        this_event = []
+        for row in rows:
+            await ctx.send("id: {0}, name: {1} alias: {2} status: {3}".format(row[0], row[1], row[2], row[3]))
+
         #ranking = []
 
         # We can actually test the retrieve event thingy here first
@@ -164,7 +184,7 @@ async def testembed(ctx):
     await ctx.send(embed=embed)
 
     # Leaderboard Embed
-    embed = discord.Embed(title="{0}".format("Xmas Lotto 2020"),
+    embed = discord.Embed(title="{0}".format("Xmas Lotto 2020 - Event Leaderboard"),
             description = "",
             color = botcolor
             )
@@ -180,13 +200,13 @@ async def ping(ctx):
 @client.command(name="whoami")
 async def whoami(ctx):
     await ctx.send("You are Master {0}".format(ctx.message.author.name))
+'''
 
 @client.command()
 async def himaster(ctx):
     master = client.get_user(int(master_id)) # get_member to display nickname?
     await ctx.send("My Master is {0}. {1}".format(master.name, "Hello Master!"))
     await call_master("Hello Master!")
-'''
 
 # Call Evil for help if something is wrong 
 async def call_master(bug_message):
