@@ -21,6 +21,7 @@ update_sql = os.getenv("UPDATE_SQL")
 victory_sql = os.getenv("VICTORY_SQL")
 event_sql = os.getenv("EVENT_SQL")
 leaderboard_sql = os.getenv("LEADER_SQL")
+end_sql = os.getenv("END_SQL")
 
 @client.event
 async def on_ready():
@@ -39,44 +40,52 @@ async def help(ctx):
     
     await ctx.send(embed=embed)
 
-# h! start "Xmas Lotto 2020" xmas20 solo 100
+# *h start "Xmas Lotto 2020" xmas20 solo 100
 @client.command(name="start")
+@commands.has_permissions(administrator=True)
 async def start_event(ctx, event_name, event_tag, event_type, goal):
-    try:
+    
+    event_success = False
 
-        # check for inputs
+    try:
 
         # Insert Event into DB
         conn = psycopg2.connect(database, sslmode='require')
         cursor = conn.cursor()
         cursor.execute(start_sql.format(ctx.message.guild.id, event_type, event_name, event_tag, goal))
         conn.commit()
+        event_success = True
+
+        # TODO: More security - no 2 events can have the same event tag on the server, etc
 
     except (Exception, psycopg2.Error) as error:
+        
         await call_master("""Master, an error occurred in start!\n
             Inputs:\n\tevent_name='{0}'\n\tevent_tag='{1}'\n\tevent_type='{2}'\n\tgoal='{3}'\n
             Error:\n{4}""".format(event_name, event_tag, event_type, goal, error))
     
     finally:
 
-        # Display Creation Embed
-        embed = discord.Embed(title="{0} has started!".format(event_name), 
-            description = "Use '{0} join {1}' to join the event and \n'{0} update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format(client.command_prefix, event_tag, goal),
-            color = botcolor
-            )
-        embed.set_thumbnail(url = ctx.guild.icon_url)
+        # Try to delete the message that caused the command
+        await ctx.message.delete()
 
-        await ctx.send(embed=embed)
+        if event_success:
+
+            # Display Creation Embed
+            embed = discord.Embed(title="{0} has started!".format(event_name), 
+                description = "Use '{0}join {1}' to join the event and \n'{0}update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format(client.command_prefix, event_tag, goal),
+                color = botcolor
+                )
+            embed.set_thumbnail(url = ctx.guild.icon_url)
+            await ctx.send(embed=embed)
 
         if (conn):
             cursor.close()
             conn.close()
 
-# h! join xmas20 20  
+# *h join xmas20 20  
 @client.command()
 async def join(ctx, event_tag, new_val=0):
-
-    success = False
     
     try:
 
@@ -84,12 +93,46 @@ async def join(ctx, event_tag, new_val=0):
         conn = psycopg2.connect(database, sslmode='require')
         cursor = conn.cursor()
 
-        # pull all event details form the server
+        # Pull event details belonging to server
+        cursor.execute(event_sql.format(ctx.message.guild.id))
+        rows = cursor.fetchall()
 
-        # Check if event tag exists, event is active
+        event_id = ''
+        event_name = ''
+        event_status = ''
+        event_goal = ''
+        for row in rows:
+            if (row[2] == event_tag):
+                event_id = row[0]
+                event_name = row[1]
+                event_status = row[3]
+                event_goal = row[4]
+
+        # Missing Event - incorrect tag
+        if event_status is '': 
+            embed = discord.Embed(title="404 - Event Tag not Found!",
+                description = "Please check the event tag.",
+                color = botcolor
+            )
+            await ctx.send(embed=embed)
+            if (conn):
+                cursor.close()
+                conn.close()
+            return
+
+        # Completed Event - can't update
+        if event_status is 'ended':
+            embed = discord.Embed(title="Event has finished",
+                description = "Thank you for participating!",
+                color = botcolor
+            )
+            await ctx.send(embed=embed)
+            if (conn):
+                cursor.close()
+                conn.close()
+            return
 
         # Insert User into DB
-        
         cursor.execute(join_sql.format(ctx.message.guild.id, ctx.message.author.id, new_val, event_tag))
         conn.commit()
 
@@ -109,8 +152,7 @@ async def join(ctx, event_tag, new_val=0):
             cursor.close()
             conn.close()
     
-
-# h! update xmas20 20
+# *h update xmas20 20
 @client.command()
 async def update(ctx, event_tag, new_val):
 
@@ -218,7 +260,7 @@ async def update(ctx, event_tag, new_val):
             cursor.close()
             conn.close()
 
-# h! leaderboard xmas20
+# *h leaderboard xmas20
 @client.command()
 async def leaderboard(ctx, event_tag):
     try:
@@ -323,6 +365,80 @@ async def leaderboard(ctx, event_tag):
         if (conn):
             cursor.close()
             conn.close()
+
+# *h end xmas20
+@client.command(name="end")
+@commands.has_permissions(administrator=True)
+async def end_event(ctx, event_tag):
+    try:
+
+        # Connect to database
+        conn = psycopg2.connect(database, sslmode='require')
+        cursor = conn.cursor()
+
+        # Pull event details belonging to server
+        cursor.execute(event_sql.format(ctx.message.guild.id))
+        rows = cursor.fetchall()
+
+        event_id = ''
+        event_name = ''
+        event_status = ''
+        event_goal = ''
+        for row in rows:
+            if (row[2] == event_tag):
+                event_id = row[0]
+                event_name = row[1]
+                event_status = row[3]
+                event_goal = row[4]
+
+        # Missing Event - incorrect tag
+        if event_status is '': 
+            embed = discord.Embed(title="404 - Event Tag not Found!",
+                description = "Please check the event tag.",
+                color = botcolor
+            )
+            await ctx.send(embed=embed)
+            if (conn):
+                cursor.close()
+                conn.close()
+            return
+
+        # Completed Event - can't update
+        if event_status is 'ended':
+            embed = discord.Embed(title="Event has already ended",
+                description = "Overkill!",
+                color = botcolor
+            )
+            await ctx.send(embed=embed)
+            if (conn):
+                cursor.close()
+                conn.close()
+            return
+
+        # Update Event Status to ended
+        cursor.execute(end_sql.format(event_id))
+        conn.commit()
+
+        # Try to delete the message that caused the command
+        await ctx.message.delete()
+
+        # Event Ended Embed
+        embed = discord.Embed(title="{0} has ended!".format(event_name), 
+            description = "Good job to all participants!\n Use {0}leaderboard {1} to see the final tally!".format(client.command_prefix, event_tag),
+            color = botcolor
+            )
+        embed.set_thumbnail(url = ctx.guild.icon_url)
+        await ctx.send(embed=embed)
+
+    except (Exception, psycopg2.Error) as error:
+        await call_master("Master, an error occurred in update!\nInputs:\n\tevent_tag='{0}'\n\tnew_val='{1}'\nError:\n{2}".format(event_tag, new_val, error))
+    
+    finally:
+
+        if (conn):
+            cursor.close()
+            conn.close()
+   
 
 '''
 # Troubleshooting Kit
