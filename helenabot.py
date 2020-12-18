@@ -87,6 +87,8 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
 @client.command()
 async def join(ctx, event_tag, new_val=0):
     
+    join_success = False
+
     try:
 
         # Connect to database
@@ -107,6 +109,9 @@ async def join(ctx, event_tag, new_val=0):
                 event_name = row[1]
                 event_status = row[3]
                 event_goal = row[4]
+        
+        # debug
+        await ctx.send("Event status = '{0}'".format(event_status))
 
         # Missing Event - incorrect tag
         if event_status is '': 
@@ -121,11 +126,33 @@ async def join(ctx, event_tag, new_val=0):
             return
 
         # Completed Event - can't update
-        if event_status is 'ended':
+        if event_status == 'ended':
             embed = discord.Embed(title="Event has finished",
-                description = "Thank you for participating!",
+                description = "Better luck next time!",
                 color = botcolor
             )
+            await ctx.send(embed=embed)
+            if (conn):
+                cursor.close()
+                conn.close()
+            return
+
+        # Check if the user has already joined the event by pulling from leaderboard
+        cursor.execute(leaderboard_sql.format(event_id))
+        rows = cursor.fetchall()
+
+        already_joined = False
+        
+        for row in rows:
+            if (str(ctx.message.author.id) == str(row[0])):
+                already_joined = True
+        
+        if already_joined:
+            embed = discord.Embed(title="You already joined this event!".format(ctx.message.author.name), 
+                description="*Start farming!*",
+                color = botcolor
+                )
+            embed.set_thumbnail(url = ctx.message.author.avatar_url)
             await ctx.send(embed=embed)
             if (conn):
                 cursor.close()
@@ -135,18 +162,20 @@ async def join(ctx, event_tag, new_val=0):
         # Insert User into DB
         cursor.execute(join_sql.format(ctx.message.guild.id, ctx.message.author.id, new_val, event_tag))
         conn.commit()
+        join_success = True
 
     except (Exception, psycopg2.Error) as error:
         await call_master("Master, an error occurred in join!\nInputs:\n\tevent_tag='{0}'\n\tnew_val='{1}'\nError:\n{2}".format(event_tag, new_val, error))
     
     finally:
 
-        # Display Creation Embed
-        embed = discord.Embed(title="{0} has joined the race! Good Luck!".format(ctx.message.author.name), 
-            color = botcolor
-            )
-        embed.set_thumbnail(url = ctx.message.author.avatar_url)
-        await ctx.send(embed=embed)
+        if join_success:
+            # Display Creation Embed
+            embed = discord.Embed(title="{0} has joined the race! Good Luck!".format(ctx.message.author.name), 
+                color = botcolor
+                )
+            embed.set_thumbnail(url = ctx.message.author.avatar_url)
+            await ctx.send(embed=embed)
 
         if (conn):
             cursor.close()
@@ -371,6 +400,9 @@ async def leaderboard(ctx, event_tag):
 @client.command(name="end")
 @commands.has_permissions(administrator=True)
 async def end_event(ctx, event_tag):
+
+    event_success = False
+
     try:
 
         # Connect to database
@@ -419,22 +451,24 @@ async def end_event(ctx, event_tag):
         # Update Event Status to ended
         cursor.execute(end_sql.format(event_id))
         conn.commit()
-
-        # Try to delete the message that caused the command
-        await ctx.message.delete()
-
-        # Event Ended Embed
-        embed = discord.Embed(title="{0} has ended!".format(event_name), 
-            description = "Good job to all participants!\n Use {0}leaderboard {1} to see the final tally!".format(client.command_prefix, event_tag),
-            color = botcolor
-            )
-        embed.set_thumbnail(url = ctx.guild.icon_url)
-        await ctx.send(embed=embed)
+        event_success = True
 
     except (Exception, psycopg2.Error) as error:
         await call_master("Master, an error occurred in update!\nInputs:\n\tevent_tag='{0}'\nError:\n{1}".format(event_tag, error))
     
     finally:
+
+        # Try to delete the message that caused the command
+        await ctx.message.delete()
+
+        if event_success:
+            # Event Ended Embed
+            embed = discord.Embed(title="{0} has ended!".format(event_name), 
+                description = "Good job to all participants!\n Use {0}leaderboard {1} to see the final tally!".format(client.command_prefix, event_tag),
+                color = botcolor
+                )
+            embed.set_thumbnail(url = ctx.guild.icon_url)
+            await ctx.send(embed=embed)
 
         if (conn):
             cursor.close()
