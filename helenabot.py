@@ -18,6 +18,7 @@ database = os.getenv("DATABASE_URL")
 start_sql = os.getenv("START_SQL")
 join_sql = os.getenv("JOIN_SQL")
 update_sql = os.getenv("UPDATE_SQL")
+victory_sql = os.getenv("VICTORY_SQL")
 event_sql = os.getenv("EVENT_SQL")
 leaderboard_sql = os.getenv("LEADER_SQL")
 
@@ -100,37 +101,101 @@ async def join(ctx, event_tag, new_val=0):
 @client.command()
 async def update(ctx, event_tag, new_val):
 
-    #await ctx.send("Updating Master {0}'s count to {1}.".format(ctx.message.author.name, new_val))
-
     try:
 
-        # Pull event details
-
-        # Check if event tag exists, event is active
-
-        # Get Event ID and Goal 
-        event_id = ''
-        goal = ''
-
-        # Insert User into DB
+        # Connect to database
         conn = psycopg2.connect(database, sslmode='require')
         cursor = conn.cursor()
-        cursor.execute(update_sql.format(ctx.message.guild.id, ctx.message.author.id, new_val, event_tag))
+
+        # Pull event details belonging to server
+        cursor.execute(event_sql.format(ctx.message.guild.id))
+        rows = cursor.fetchall()
+
+        event_id = ''
+        event_name = ''
+        event_status = ''
+        event_goal = ''
+        for row in rows:
+            if (row[2] == event_tag):
+                event_id = row[0]
+                event_name = row[1]
+                event_status = row[3]
+                event_goal = row[4]
+
+        # Missing Event - incorrect tag
+        if event_status is '': 
+            embed = discord.Embed(title="404 - Event Tag not Found!",
+                description = "Please check the event tag.",
+                color = botcolor
+            )
+            await ctx.send(embed=embed)
+            if (conn):
+                cursor.close()
+                conn.close()
+            return
+
+        # Completed Event - can't update
+        if event_status is 'ended':
+            embed = discord.Embed(title="Event has finished",
+                description = "Thank you for participating!",
+                color = botcolor
+            )
+            await ctx.send(embed=embed)
+            if (conn):
+                cursor.close()
+                conn.close()
+            return
+
+        # Update User
+        cursor.execute(update_sql.format(new_val, event_id, ctx.message.author.id))
         conn.commit()
 
-        # Check for rank and victory conditions - order participants, and determine rank
+        # Check for victory conditions by pulling from leaderboard
+        cursor.execute(leaderboard_sql.format(event_id))
+        rows = cursor.fetchall()
+
+        goal_complete_now = False
+        goal_completed = False
+        
+        for row in rows:
+            if ctx.message.author.id == row[0] and row[3] is None and new_val >= event_goal:
+                goal_complete_now = True 
+            elif ctx.message.author.id == row[0] and row[3] is not None:
+                goal_completed = True
+
+        if goal_complete_now:
+
+            # Set Completion date in DB
+            cursor.execute(victory_sql.format(event_id, ctx.message.author.id))
+            conn.commit()
+        
+            # Display victory embed
+            embed = discord.Embed(title= "You've reached the goal!\n**Congratulations!**", 
+                color = botcolor
+                )
+            embed.set_thumbnail(url = ctx.message.author.avatar_url)
+            await ctx.send(embed=embed)
+
+        elif goal_completed:
+            # Keep Farming Embed 
+            embed = discord.Embed(title= "You are at {0}/{1}, over the goal!\n*Let's see how far you've come, Let's see how far you'll go~*".format(new_val, event_goal), 
+                color = botcolor
+                )
+            embed.set_thumbnail(url = ctx.message.author.avatar_url)
+            await ctx.send(embed=embed)
+        else:
+            # Display normal embed - TODO: add more encouraging messages and display them at random 
+            embed = discord.Embed(title= "You are at {0}/{1}!\nKeep going!".format(new_val, event_goal), 
+                color = botcolor
+                )
+            embed.set_thumbnail(url = ctx.message.author.avatar_url)
+            await ctx.send(embed=embed)
 
     except (Exception, psycopg2.Error) as error:
         await call_master("Update event error: {0}".format(error))
+        await call_master("Master, an error occurred in update!\nInputs:\n\tevent_tag='{0}'\n\tnew_val='{1}'\nError:\n{2}".format(event_tag, new_val, error))
     
     finally:
-
-        # Display Creation Embed
-        embed = discord.Embed(title= "You are at {0}/{1}, rank {2}! Keep going!".format(new_val, goal, ctx.message.author.name), 
-            color = botcolor
-            )
-        embed.set_thumbnail(url = ctx.message.author.avatar_url)
-        await ctx.send(embed=embed)
 
         if (conn):
             cursor.close()
@@ -141,7 +206,7 @@ async def update(ctx, event_tag, new_val):
 async def leaderboard(ctx, event_tag):
     try:
 
-        # Input parsing - not triggering
+        # Input parsing - not triggering, TODO: low priority fix
         if event_tag == '':
             embed = discord.Embed(title="Incomplete command!",
                 description = "Please enter an event tag.",
@@ -169,7 +234,7 @@ async def leaderboard(ctx, event_tag):
                 event_status = row[3]
                 event_goal = row[4]
 
-        # Missing Event - incorrect tag - TODO: fix
+        # Missing Event - incorrect tag 
         if event_status is '': 
             embed = discord.Embed(title="404 - Event Tag not Found!",
                 description = "Please check the event tag.",
