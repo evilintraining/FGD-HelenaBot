@@ -31,18 +31,15 @@ async def help(ctx):
     embed = discord.Embed(title="Helena's Guide to Event Participation",
             description = 
             """
-            Replace the items in [brackets] with the correct data.\n\n
-            __**Joining an Event**__\n
-            Join a certain event based on its tag\n
-            {0}join [event_tag]\n
-            ex. {0}join xmas20\n\n
-            __**Updating Your Score**__\n
-            Updates your score to the new amount\n
-            {0}update [event_tag] [amount]\n
-            ex. {0}update xmas20 10\n\n
-            __**Viewing the Leaderboard**__\n
-            Views the current event rankings\n
-            {0}leaderboard [event_tag]\n
+            Replace the items in [brackets] with the correct data.
+            __**Joining an Event**__
+            {0}join [event_tag]
+            ex. {0}join xmas20
+            __**Updating Your Score**__
+            {0}update [event_tag] [amount]
+            ex. {0}update xmas20 10
+            __**Viewing the Leaderboard**__
+            {0}leaderboard [event_tag]
             ex. {0}leaderboard xmas20
             """.format(client.command_prefix),
             color = botcolor
