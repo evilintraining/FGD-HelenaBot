@@ -170,8 +170,8 @@ async def leaderboard(ctx, event_tag):
                 event_status = row[3]
                 event_goal = row[4]
 
-        # Missing Event - incorrect tag
-        if event_status is '':
+        # Missing Event - incorrect tag - also not working
+        if event_status is '': 
             embed = discord.Embed(title="404 - Event Tag not Found!",
                 description = "Please check the event tag.",
                 color = botcolor
@@ -200,7 +200,7 @@ async def leaderboard(ctx, event_tag):
         # Loop through results and build the embed
         for row in rows:
 
-            member_name = ctx.guild.get_member(int(row[0])).nick + " (" + ctx.guild.get_member(int(row[0])) + ")"
+            member_name = client.get_user(int(row[0])) #ctx.guild.get_member(int(row[0])).nick
             member_amount = row[1]
             member_update = row[2]
             member_complete = row[3]
@@ -280,7 +280,15 @@ async def himaster(ctx):
     await ctx.send("My Master is {0}.".format(master.name))
     await ctx.send("The current server is {0}.".format(ctx.guild))
     await ctx.send("Master's Server Nickname is {0}.".format(ctx.guild.get_member(int(master_id)).nick))
+
     await call_master("Hello Master!")
+
+@client.command()
+async def himember(ctx, member_id):
+    member = client.get_user(int(member_id))
+    await ctx.send("This member is {0}.".format(member))
+    member_nick = ctx.guild.get_member(int(member_id)).nick
+    await ctx.send("Also known as {0} on this server".format(member_nick))
 
 # Call Evil for help if something is wrong 
 async def call_master(bug_message):
