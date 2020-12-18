@@ -29,22 +29,13 @@ async def on_ready():
 @client.command()
 async def help(ctx):
     embed = discord.Embed(title="Helena's Guide to Event Participation",
-            description = 
-            """
-            Replace the items in [brackets] with the correct data.
-            __**Joining an Event**__
-            {0}join [event_tag]
-            ex. {0}join xmas20
-            __**Updating Your Score**__
-            {0}update [event_tag] [amount]
-            ex. {0}update xmas20 10
-            __**Viewing the Leaderboard**__
-            {0}leaderboard [event_tag]
-            ex. {0}leaderboard xmas20
-            """.format(client.command_prefix),
+            description = "Replace the items in [brackets] with the correct data.",
             color = botcolor
             )
     embed.set_thumbnail(url= client.user.avatar_url)
+    embed.add_field(name="Joining an Event", value="{0}join [event_tag]\nex. {0}join xmas20".format(client.command_prefix))
+    embed.add_field(name="Updating Your Score", value="{0}update [event_tag] [amount]\nex. {0}update xmas20 10".format(client.command_prefix))
+    embed.add_field(name="Viewing the Leaderboard", value="{0}leaderboard [event_tag]\nex. {0}leaderboard xmas20".format(client.command_prefix))
     
     await ctx.send(embed=embed)
 
