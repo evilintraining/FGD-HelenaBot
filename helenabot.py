@@ -158,9 +158,9 @@ async def update(ctx, event_tag, new_val):
         goal_completed = False
         
         for row in rows:
-            if (str(ctx.message.author.id) == str(row[0])) and (row[3] is None) and (new_val >= event_goal):
+            if (str(ctx.message.author.id) == str(row[0])) and (row[3] is None) and (int(new_val) >= event_goal):
                 goal_complete_now = True 
-            elif (str(ctx.message.author.id) == str(row[0])) and (row[3] is not None) and new_val < event_goal:
+            elif (str(ctx.message.author.id) == str(row[0])) and (row[3] is not None) and (int(new_val) < event_goal):
                 goal_completed = True
 
         await ctx.send("Goal Now: {0}, Goal Completed: {1}".format(goal_complete_now, goal_completed))
@@ -194,7 +194,6 @@ async def update(ctx, event_tag, new_val):
             await ctx.send(embed=embed)
 
     except (Exception, psycopg2.Error) as error:
-        await call_master("Update event error: {0}".format(error))
         await call_master("Master, an error occurred in update!\nInputs:\n\tevent_tag='{0}'\n\tnew_val='{1}'\nError:\n{2}".format(event_tag, new_val, error))
     
     finally:
