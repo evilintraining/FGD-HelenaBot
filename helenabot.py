@@ -17,7 +17,7 @@ start_sql = os.getenv("START_SQL")
 join_sql = os.getenv("JOIN_SQL")
 update_sql = os.getenv("UPDATE_SQL")
 event_sql = os.getenv("EVENT_SQL")
-#leaderboard_sql = os.getenv("LEADER_SQL")
+leaderboard_sql = os.getenv("LEADER_SQL")
 
 @client.event
 async def on_ready():
@@ -68,7 +68,7 @@ async def join(ctx, event_tag, new_val=0):
         conn = psycopg2.connect(database, sslmode='require')
         cursor = conn.cursor()
 
-        # pull all event details form the surver
+        # pull all event details form the server
 
         # Check if event tag exists, event is active
 
@@ -140,32 +140,99 @@ async def leaderboard(ctx, event_tag):
     try:
 
         # Input parsing
+        if event_tag is '':
+            embed = discord.Embed(title="Incomplete command!",
+                description = "Please enter an event tag.",
+                color = botcolor
+            )
+            ctx.send(embed)
+            return
 
         # Connect to database
         conn = psycopg2.connect(database, sslmode='require')
         cursor = conn.cursor()
 
-
         # Pull event details belonging to server
         cursor.execute(event_sql.format(ctx.message.guild.id))
         rows = cursor.fetchall()
 
-        this_event = []
+        event_id = ''
+        event_name = ''
+        event_status = ''
+        event_goal = ''
         for row in rows:
-            await ctx.send("id: {0}, name: {1} alias: {2} status: {3}".format(row[0], row[1], row[2], row[3]))
+            #await ctx.send("id: {0}, name: {1} alias: {2} status: {3}".format(row[0], row[1], row[2], row[3]))
+            if (row[2] == event_tag):
+                event_id = row[0]
+                event_name = row[1]
+                event_status = row[3]
+                event_goal = row[4]
 
-        #ranking = []
+        # Missing Event - incorrect tag
+        if event_status is '':
+            embed = discord.Embed(title="404 - Event Tag not Found!",
+                description = "Please check the event tag.",
+                color = botcolor
+            )
+            ctx.send(embed)
+            if (conn):
+                cursor.close()
+                conn.close()
+            return
+        
+        # Print out the Leaderboard
+        cursor.execute(leaderboard_sql.format(event_id))
+        rows = cursor.fetchall()
 
-        # We can actually test the retrieve event thingy here first
-        event_tag = ''
+        # Build the Embed
+        embed = discord.Embed(title="{0} - Event Leaderboard".format(event_name),
+            description = "",
+            color = botcolor
+            )
+        embed.set_thumbnail(url= ctx.guild.icon_url)
+
+        ranking = 0
+        prev_amount = -1
+        increment = 1
+
+        # Loop through results and build the embed
+        for row in rows:
+
+            member_name = ctx.message.guild.get_member(int(row[0])).nick
+            member_amount = row[1]
+            member_update = row[2]
+            member_complete = row[3]
+            member_ranking = 0
+
+            # Calculate Rank
+            if prev_amount != member_amount:
+                member_ranking = ranking + increment
+                ranking = ranking + increment
+                increment = 1
+            else:
+                member_ranking = ranking
+                increment += 1
+            
+            prev_amount = member_amount
+            
+            # Handle Date
+            datestring = "Date updated: " + member_update
+            if member_complete != '':
+                datestring += "\nDate completed: " + member_complete
+
+            embed.add_field(name="#{0} - {1}".format(member_ranking, member_name), 
+                value="{0}/{1}\n{2}".format(member_amount, event_goal, datestring))
+        
+        ctx.send(embed)
     
     except (Exception, psycopg2.Error) as error:
-        await call_master("Leaderboard error: {0}".format(error))
-    
+        await call_master("Master, an error occurred in leaderboard!\nInputs:\n\tevent_tag='{0}'\nError:\n{1}".format(event_tag, error))
+
     finally:
 
-        # Display Ranking Embed
-        await ctx.send("Showing leaderboard for {0}".format(event_tag))
+        if (conn):
+            cursor.close()
+            conn.close()
 
 
 @client.command()
