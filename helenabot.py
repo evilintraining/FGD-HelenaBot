@@ -141,8 +141,8 @@ async def update(ctx, event_tag, new_val):
 async def leaderboard(ctx, event_tag):
     try:
 
-        # Input parsing 
-        if event_tag is None:
+        # Input parsing - not triggering
+        if event_tag == '':
             embed = discord.Embed(title="Incomplete command!",
                 description = "Please enter an event tag.",
                 color = botcolor
@@ -205,6 +205,9 @@ async def leaderboard(ctx, event_tag):
             member_update = row[2]
             member_complete = row[3]
             member_ranking = 0
+
+            # print statement
+            await ctx.send("member: {0}, amount: {1} member_update: {2} member_complete: {3}".format(member_name, member_amount, member_update, member_complete))
 
             # Calculate Rank
             if prev_amount != member_amount:
