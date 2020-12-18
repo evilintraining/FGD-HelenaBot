@@ -200,7 +200,7 @@ async def leaderboard(ctx, event_tag):
         # Loop through results and build the embed
         for row in rows:
 
-            member_name = ctx.message.guild.get_member(int(row[0])).nick
+            member_name = client.get_user(int(row[0])) #ctx.message.guild.get_member(int(row[0])).nick
             member_amount = row[1]
             member_update = row[2]
             member_complete = row[3]
@@ -228,7 +228,7 @@ async def leaderboard(ctx, event_tag):
             embed.add_field(name="#{0} - {1}".format(member_ranking, member_name), 
                 value="{0}/{1}\n{2}".format(member_amount, event_goal, datestring))
         
-        ctx.send(embed)
+        await ctx.send(embed)
     
     except (Exception, psycopg2.Error) as error:
         await call_master("Master, an error occurred in leaderboard!\nInputs:\n\tevent_tag='{0}'\nError:\n{1}".format(event_tag, error))
