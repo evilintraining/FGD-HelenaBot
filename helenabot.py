@@ -160,10 +160,10 @@ async def update(ctx, event_tag, new_val):
         for row in rows:
             if (str(ctx.message.author.id) == str(row[0])) and (row[3] is None) and (int(new_val) >= event_goal):
                 goal_complete_now = True 
-            elif (str(ctx.message.author.id) == str(row[0])) and (row[3] is not None) and (int(new_val) < event_goal):
+            elif (str(ctx.message.author.id) == str(row[0])) and (row[3] is not None):
                 goal_completed = True
 
-        await ctx.send("Goal Now: {0}, Goal Completed: {1}".format(goal_complete_now, goal_completed))
+        #await ctx.send("Goal Now: {0}, Goal Completed: {1}".format(goal_complete_now, goal_completed))
 
         if goal_complete_now:
 
@@ -172,7 +172,8 @@ async def update(ctx, event_tag, new_val):
             conn.commit()
         
             # Display victory embed
-            embed = discord.Embed(title= "You've reached the goal!\n**Congratulations!**", 
+            embed = discord.Embed(title= event_name,
+                description = "You've reached the goal!\n**Congratulations!**", 
                 color = botcolor
                 )
             embed.set_thumbnail(url = ctx.message.author.avatar_url)
@@ -180,14 +181,16 @@ async def update(ctx, event_tag, new_val):
 
         elif goal_completed:
             # Keep Farming Embed 
-            embed = discord.Embed(title= "You are at {0}/{1}, over the goal!\n*Let's see how far you've come, Let's see how far you'll go~*".format(new_val, event_goal), 
+            embed = discord.Embed(title= event_name, 
+                description = "You are at {0}/{1}, over the goal!\n*Let's see how far you've come, Let's see how far you'll go~*".format(new_val, event_goal), 
                 color = botcolor
                 )
             embed.set_thumbnail(url = ctx.message.author.avatar_url)
             await ctx.send(embed=embed)
         else:
             # Display normal embed - TODO: add more encouraging messages and display them at random 
-            embed = discord.Embed(title= "You are at {0}/{1}!\nKeep going!".format(new_val, event_goal), 
+            embed = discord.Embed(title= event_name,
+                description = "You are at {0}/{1}!\nKeep going!".format(new_val, event_goal), 
                 color = botcolor
                 )
             embed.set_thumbnail(url = ctx.message.author.avatar_url)
