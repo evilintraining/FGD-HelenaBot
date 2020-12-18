@@ -4,7 +4,9 @@ import os
 import psycopg2
 
 # Bot init
-client = commands.Bot(command_prefix="*h ")
+intents = discord.Intents.default()
+intents.members = True
+client = commands.Bot(command_prefix="*h ", intents=intents)
 token = os.getenv("HELENABOT_TOKEN")
 master_id = os.getenv("MASTER_ID")
 botcolor = 0xC793C3
