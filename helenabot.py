@@ -228,7 +228,7 @@ async def leaderboard(ctx, event_tag):
             embed.add_field(name="#{0} - {1}".format(member_ranking, member_name), 
                 value="{0}/{1}\n{2}".format(member_amount, event_goal, datestring))
         
-        await ctx.send(embed)
+        await ctx.send(embed=embed)
     
     except (Exception, psycopg2.Error) as error:
         await call_master("Master, an error occurred in leaderboard!\nInputs:\n\tevent_tag='{0}'\nError:\n{1}".format(event_tag, error))
