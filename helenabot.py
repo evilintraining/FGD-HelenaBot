@@ -111,10 +111,10 @@ async def join(ctx, event_tag, new_val=0):
                 event_goal = row[4]
         
         # debug
-        await ctx.send("Event status = '{0}'".format(event_status))
+        #await ctx.send("Event status = '{0}'".format(event_status))
 
         # Missing Event - incorrect tag
-        if event_status is '': 
+        if event_status == '': 
             embed = discord.Embed(title="404 - Event Tag not Found!",
                 description = "Please check the event tag.",
                 color = botcolor
@@ -148,7 +148,7 @@ async def join(ctx, event_tag, new_val=0):
                 already_joined = True
         
         if already_joined:
-            embed = discord.Embed(title="You already joined this event!".format(ctx.message.author.name), 
+            embed = discord.Embed(title= "You already joined this event!", 
                 description="*Start farming!*",
                 color = botcolor
                 )
@@ -207,7 +207,7 @@ async def update(ctx, event_tag, new_val):
                 event_goal = row[4]
 
         # Missing Event - incorrect tag
-        if event_status is '': 
+        if event_status == '': 
             embed = discord.Embed(title="404 - Event Tag not Found!",
                 description = "Please check the event tag.",
                 color = botcolor
@@ -219,7 +219,7 @@ async def update(ctx, event_tag, new_val):
             return
 
         # Completed Event - can't update
-        if event_status is 'ended':
+        if event_status == 'ended':
             embed = discord.Embed(title="Event has finished",
                 description = "Thank you for participating!",
                 color = botcolor
@@ -324,7 +324,7 @@ async def leaderboard(ctx, event_tag):
                 event_goal = row[4]
 
         # Missing Event - incorrect tag 
-        if event_status is '': 
+        if event_status == '': 
             embed = discord.Embed(title="404 - Event Tag not Found!",
                 description = "Please check the event tag.",
                 color = botcolor
@@ -425,7 +425,7 @@ async def end_event(ctx, event_tag):
                 event_goal = row[4]
 
         # Missing Event - incorrect tag
-        if event_status is '': 
+        if event_status == '': 
             embed = discord.Embed(title="404 - Event Tag not Found!",
                 description = "Please check the event tag.",
                 color = botcolor
@@ -437,7 +437,7 @@ async def end_event(ctx, event_tag):
             return
 
         # Completed Event - can't update
-        if event_status is 'ended':
+        if event_status == 'ended':
             embed = discord.Embed(title="Event has already ended",
                 description = "Overkill!",
                 color = botcolor
