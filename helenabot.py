@@ -200,14 +200,15 @@ async def leaderboard(ctx, event_tag):
         # Loop through results and build the embed
         for row in rows:
 
-            member_name = client.get_user(int(row[0])) #ctx.guild.get_member(int(row[0])).nick
+            member_name = ctx.guild.get_member(int(row[0]))
+            member_nickname = ctx.guild.get_member(int(row[0])).nick
             member_amount = row[1]
             member_update = row[2]
             member_complete = row[3]
             member_ranking = 0
 
             # print statement
-            await ctx.send("member: {0}, amount: {1} member_update: {2} member_complete: {3}".format(member_name, member_amount, member_update, member_complete))
+            # await ctx.send("member: {0}, amount: {1} member_update: {2} member_complete: {3}".format(member_name, member_amount, member_update, member_complete))
 
             # Calculate Rank
             if prev_amount != member_amount:
@@ -225,7 +226,12 @@ async def leaderboard(ctx, event_tag):
             if member_complete is not None:
                 datestring += "\nDate completed: " + member_complete.strftime("%m/%d/%Y, %H:%M:%S")
 
-            embed.add_field(name="#{0} - {1}".format(member_ranking, member_name), 
+            # Handle Name
+            namestring = member_name
+            if member_nickname is not None:
+                namestring += "(" + member_nickname + ")"
+
+            embed.add_field(name="#{0} - {1}".format(member_ranking, namestring), 
                 value="{0}/{1}\n{2}".format(member_amount, event_goal, datestring))
         
         await ctx.send(embed=embed)
