@@ -73,7 +73,7 @@ async def start_event(ctx, event_name, event_tag, event_type, goal):
 
             # Display Creation Embed
             embed = discord.Embed(title="{0} has started!".format(event_name), 
-                description = "Use '{0}join {1}' to join the event and \n'{0}update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format(client.command_prefix, event_tag, goal),
+                description = "Use '\{0}join {1}' to join the event and \n'\{0}update {1} [amount]' to update your score!\nFirst one to reach {2} wins!".format(client.command_prefix, event_tag, goal),
                 color = botcolor
                 )
             embed.set_thumbnail(url = ctx.guild.icon_url)
