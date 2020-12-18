@@ -141,13 +141,13 @@ async def update(ctx, event_tag, new_val):
 async def leaderboard(ctx, event_tag):
     try:
 
-        # Input parsing 
+        # Input parsing - not triggering
         if event_tag == '':
             embed = discord.Embed(title="Incomplete command!",
                 description = "Please enter an event tag.",
                 color = botcolor
             )
-            await ctx.send(embed)
+            await ctx.send(embed=embed)
             return
 
         # Connect to database
@@ -175,7 +175,7 @@ async def leaderboard(ctx, event_tag):
                 description = "Please check the event tag.",
                 color = botcolor
             )
-            await ctx.send(embed)
+            await ctx.send(embed=embed)
             if (conn):
                 cursor.close()
                 conn.close()
