@@ -6,7 +6,7 @@ import psycopg2
 # Bot init
 intents = discord.Intents.default()
 intents.members = True
-client = commands.Bot(command_prefix="*h ", intents=intents)
+client = commands.Bot(command_prefix="*h ", intents=intents, help_command=None)
 token = os.getenv("HELENABOT_TOKEN")
 master_id = os.getenv("MASTER_ID")
 botcolor = 0xC793C3
@@ -24,7 +24,32 @@ leaderboard_sql = os.getenv("LEADER_SQL")
 
 @client.event
 async def on_ready():
-    await client.change_presence(status = discord.Status.online, activity=discord.Activity(type=discord.ActivityType.watching, name= "over events"))
+    await client.change_presence(status = discord.Status.online, activity=discord.Activity(type=discord.ActivityType.watching, name= "over FGD Events | " + client.command_prefix + "help"))
+
+@client.command()
+async def help(ctx):
+    embed = discord.Embed(title="Helena's Guide to Event Participation",
+            description = 
+            """
+            Replace the items in [brackets] with the correct data.\n\n
+            __**Joining an Event**__\n
+            Join a certain event based on its tag\n
+            {0}join [event_tag]\n
+            ex. {0}join xmas20\n\n
+            __**Updating Your Score**__\n
+            Updates your score to the new amount\n
+            {0}update [event_tag] [amount]\n
+            ex. {0}update xmas20 10\n\n
+            __**Viewing the Leaderboard**__\n
+            Views the current event rankings\n
+            {0}leaderboard [event_tag]\n
+            ex. {0}leaderboard xmas20
+            """.format(client.command_prefix),
+            color = botcolor
+            )
+    embed.set_thumbnail(url= client.user.avatar_url)
+    
+    await ctx.send(embed=embed)
 
 # h! start "Xmas Lotto 2020" xmas20 solo 100
 @client.command(name="start")
@@ -182,7 +207,7 @@ async def update(ctx, event_tag, new_val):
         elif goal_completed:
             # Keep Farming Embed 
             embed = discord.Embed(title= event_name, 
-                description = "You are at {0}/{1}, over the goal!\n*Let's see how far you've come, Let's see how far you'll go~*".format(new_val, event_goal), 
+                description = "You are at {0}/{1}, over the goal!\n*Let's see how far you've come,\nLet's see how far you'll go~*".format(new_val, event_goal), 
                 color = botcolor
                 )
             embed.set_thumbnail(url = ctx.message.author.avatar_url)
@@ -311,7 +336,8 @@ async def leaderboard(ctx, event_tag):
             cursor.close()
             conn.close()
 
-
+'''
+# Troubleshooting Kit
 @client.command()
 async def testembed(ctx):
 
@@ -340,7 +366,7 @@ async def himember(ctx, member_id):
     await ctx.send("This member is {0}.".format(member))
     member_nick = ctx.guild.get_member(int(member_id)).nick
     await ctx.send("Also known as {0} on this server".format(member_nick))
-
+'''
 # Call Evil for help if something is wrong 
 async def call_master(bug_message):
     master = client.get_user(int(master_id))
