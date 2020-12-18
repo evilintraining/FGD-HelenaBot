@@ -158,10 +158,12 @@ async def update(ctx, event_tag, new_val):
         goal_completed = False
         
         for row in rows:
-            if ctx.message.author.id == row[0] and row[3] is None and new_val >= event_goal:
+            if (str(ctx.message.author.id) == str(row[0])) and (row[3] is None) and (new_val >= event_goal):
                 goal_complete_now = True 
-            elif ctx.message.author.id == row[0] and row[3] is not None:
+            elif (str(ctx.message.author.id) == str(row[0])) and (row[3] is not None) and new_val < event_goal:
                 goal_completed = True
+
+        await ctx.send("Goal Now: {0}, Goal Completed: {1}".format(goal_complete_now, goal_completed))
 
         if goal_complete_now:
 
