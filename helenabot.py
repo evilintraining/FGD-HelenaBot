@@ -236,8 +236,9 @@ async def update(ctx, event_tag, new_val):
 
         elif goal_completed:
             # Keep Farming Embed 
+            excess = int(new_val) - int(event_goal)
             embed = discord.Embed(title= event_name, 
-                description = "You are at {0}/{1}, over the goal!\n*Let's see how far you've come,\nLet's see how far you'll go~*".format(new_val, event_goal), 
+                description = "You are at {0}/{1}, over the goal!\n*{2}x Overkill!*".format(new_val, event_goal, excess), 
                 color = botcolor
                 )
             embed.set_thumbnail(url = ctx.message.author.avatar_url)
@@ -431,7 +432,7 @@ async def end_event(ctx, event_tag):
         await ctx.send(embed=embed)
 
     except (Exception, psycopg2.Error) as error:
-        await call_master("Master, an error occurred in update!\nInputs:\n\tevent_tag='{0}'\n\tnew_val='{1}'\nError:\n{2}".format(event_tag, new_val, error))
+        await call_master("Master, an error occurred in update!\nInputs:\n\tevent_tag='{0}'\nError:\n{1}".format(event_tag, error))
     
     finally:
 
