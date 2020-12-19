@@ -22,6 +22,7 @@ victory_sql = os.getenv("VICTORY_SQL")
 event_sql = os.getenv("EVENT_SQL")
 leaderboard_sql = os.getenv("LEADER_SQL")
 end_sql = os.getenv("END_SQL")
+change_sql = os.getenv("CHANGE_SQL")
 
 @client.event
 async def on_ready():
@@ -396,6 +397,95 @@ async def leaderboard(ctx, event_tag):
             cursor.close()
             conn.close()
 
+# *h change xmas20 tag xmas21
+# *h change xmas20 goal 101
+
+@client.command(name="change")
+@commands.has_permissions(administrator=True)
+async def change_event(ctx, event_tag, event_field, event_value):
+     
+    change_success = False
+
+    try:
+
+        # Check if event field is correct
+        selected_field = ''
+
+        if event_field == 'tag':
+            selected_field = 'event_tag'
+            value_string = '"' + event_value + '"'
+        elif event_field == 'goal':
+            selected_field = 'goal'
+            value_string = event_value
+        elif event_field == 'name':
+            selected_field = 'name'
+            value_string = '"' + event_value + '"'
+        else: # invalid field so do not continue
+            embed = discord.Embed(title="Cannot change event!",
+                description = "Please use **tag** to change event tag, or **goal** to change the goal.",
+                color = botcolor
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # Connect to database
+        conn = psycopg2.connect(database, sslmode='require')
+        cursor = conn.cursor()
+
+        # Pull event details belonging to the server
+        cursor.execute(event_sql.format(ctx.message.guild.id))
+        rows = cursor.fetchall()
+
+        event_id = ''
+        event_name = ''
+        event_status = ''
+        event_goal = ''
+        for row in rows:
+            if (row[2] == event_tag):
+                event_id = row[0]
+                event_name = row[1]
+                event_status = row[3]
+                event_goal = row[4]
+
+        # Missing Event - incorrect tag
+        if event_status == '': 
+            embed = discord.Embed(title="404 - Event Tag not Found!",
+                description = "Please check the event tag.",
+                color = botcolor
+            )
+            await ctx.send(embed=embed)
+            if (conn):
+                cursor.close()
+                conn.close()
+            return
+        
+        # Change Event Details based on field
+        cursor.execute(change_sql.format(selected_field, value_string, event_id))
+        conn.commit()
+        change_success = True
+    
+    except (Exception, psycopg2.Error) as error:
+        await call_master("Master, an error occurred in change event!\nInputs:\n\tevent_tag='{0}'\n\tevent_field='{1}'\n\tevent_value='{2}'\nError:\n{3}".format(event_tag, event_field, event_value, error))
+    
+    finally:
+
+        # Try to delete the message that caused the command
+        await ctx.message.delete()
+
+        if change_success:
+            # Event Ended Embed
+            embed = discord.Embed(title="{0} has been changed!".format(event_name), 
+                description = "The event's {0} is now {1}!".format(event_field, event_value),
+                color = botcolor
+                )
+            embed.set_thumbnail(url = ctx.guild.icon_url)
+            await ctx.send(embed=embed)
+
+        if (conn):
+            cursor.close()
+            conn.close()
+
+
 # *h end xmas20
 @client.command(name="end")
 @commands.has_permissions(administrator=True)
@@ -474,6 +564,7 @@ async def end_event(ctx, event_tag):
             cursor.close()
             conn.close()
    
+
 
 '''
 # Troubleshooting Kit
