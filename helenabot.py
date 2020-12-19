@@ -412,13 +412,13 @@ async def change_event(ctx, event_tag, event_field, event_value):
         selected_field = ''
 
         if event_field == 'tag':
-            selected_field = 'event_tag'
+            selected_field = 'event_alias'
             value_string = "'" + event_value + "'"
         elif event_field == 'goal':
             selected_field = 'goal'
             value_string = event_value
         elif event_field == 'name':
-            selected_field = 'name'
+            selected_field = 'event_name'
             value_string = "'" + event_value + "'"
         else: # invalid field so do not continue
             embed = discord.Embed(title="Cannot change event!",
