@@ -34,9 +34,9 @@ async def help(ctx):
             color = botcolor
             )
     embed.set_thumbnail(url= client.user.avatar_url)
-    embed.add_field(name="Joining an Event", value="{0}join [event_tag]\nex. {0}join xmas20".format(client.command_prefix))
-    embed.add_field(name="Updating Your Score", value="{0}update [event_tag] [amount]\nex. {0}update xmas20 10".format(client.command_prefix))
-    embed.add_field(name="Viewing the Leaderboard", value="{0}leaderboard [event_tag]\nex. {0}leaderboard xmas20".format(client.command_prefix))
+    embed.add_field(name="Joining an Event", value="{0}join [event_tag]\nex. {0}join xmas20".format(client.command_prefix), inline=False)
+    embed.add_field(name="Updating Your Score", value="{0}update [event_tag] [amount]\nex. {0}update xmas20 10".format(client.command_prefix), inline=False)
+    embed.add_field(name="Viewing the Leaderboard", value="{0}leaderboard [event_tag]\nex. {0}leaderboard xmas20".format(client.command_prefix), inline=False)
     
     await ctx.send(embed=embed)
 
@@ -383,7 +383,7 @@ async def leaderboard(ctx, event_tag):
 
             # Build Individual Ranking Row
             embed.add_field(name="#{0} - {1}".format(member_ranking, namestring), 
-                value="{0}/{1}\n{2}".format(member_amount, event_goal, datestring))
+                value="{0}/{1}\n{2}".format(member_amount, event_goal, datestring), inline=False)
         
         await ctx.send(embed=embed)
     
