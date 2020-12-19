@@ -397,6 +397,60 @@ async def leaderboard(ctx, event_tag):
             cursor.close()
             conn.close()
 
+
+# *h events ongoing/ended - returns events in the server 
+
+@client.command(name="events")
+async def view_events(ctx, event_type="all"):
+
+    try:
+
+        if event_type != 'all' or event_type != 'ongoing' or event_type != 'ended':
+            embed = discord.Embed(title="Error using events",
+                description = "Use \*h events to view all events on the server",
+                color = botcolor
+            )
+            await ctx.send(embed=embed)
+            return
+
+        # Connect to database
+        conn = psycopg2.connect(database, sslmode='require')
+        cursor = conn.cursor()
+        
+        # Pull event details belonging to server
+        cursor.execute(event_sql.format(ctx.message.guild.id))
+        rows = cursor.fetchall()
+
+        embed = discord.Embed(title="{0} - {1} events".format(ctx.message.guild.name, event_type),
+            color = botcolor
+            )
+        embed.set_thumbnail(url= client.user.avatar_url)
+
+        for row in rows:
+            event_id = row[0]
+            event_name = row[1]
+            event_tag = row[2]
+            event_status = row[3]
+            event_goal = row[4]
+            if event_type == 'all':
+                embed.add_field(name=event_name, value="tag: {0}\nstatus: {1}".format(event_tag, event_status), inline=False)
+            elif event_type != 'all' and event_type == event_status:
+                embed.add_field(name=event_name, value="tag: {0}\n".format(event_tag), inline=False)
+        
+        await ctx.send(embed=embed)
+
+    except (Exception, psycopg2.Error) as error:
+        await call_master("Master, an error occurred in events!\nInputs:\n\tevent_tag='{0}'\nError:\n{1}".format(event_tag, error))
+
+    finally:
+         if (conn):
+            cursor.close()
+            conn.close()
+
+    # Connect to database
+    conn = psycopg2.connect(database, sslmode='require')
+    cursor = conn.cursor()
+
 # *h change xmas20 tag xmas21
 # *h change xmas20 goal 101
 
