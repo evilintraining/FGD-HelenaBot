@@ -405,7 +405,7 @@ async def view_events(ctx, event_type="all"):
 
     try:
 
-        if event_type != 'all' or event_type != 'ongoing' or event_type != 'ended':
+        if event_type != 'all' and event_type != 'ongoing' and event_type != 'ended':
             embed = discord.Embed(title="Error using events",
                 description = "Use \*h events to view all events on the server",
                 color = botcolor
